@@ -11,58 +11,52 @@ import scipy.integrate as integrate
 from scipy.linalg import sqrtm
 
 # initalize global variables
-dt = 0.01                                            # seconds
-N = 50                                            # number of samples
-qc = 0.1                                              # process noise magnitude
-z_noise = 1                                        # measurement noise magnitude
+dt = 0.01  # seconds
+N = 50  # number of samples
+qc = 0.1  # process noise magnitude
+z_noise = 1  # measurement noise magnitude
 show_animation = 1
 show_ellipse = 0
 
 # initial guesses
 # prior mean
-x_0 = np.array([[0.0],                              # x position
-                [0.0],                              # y position
-                [0.0],                              # x velocity
-                [0.0],                              # y velocity
-                [0.0],                              # x acceleration
-                [0.0]])                             # y acceleration
+x_0 = np.array([
+    [0.0],  # x position
+    [0.0],  # y position
+    [0.0],  # x velocity
+    [0.0],  # y velocity
+    [0.0],  # x acceleration
+    [0.0],  # y acceleration
+])
 
 # prior covariance
-p_0 = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+p_0 = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0], 
                 [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0, 0.0, 0.0], 
                 [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0], 
                 [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
-
 
 # motion model
 # x_(k) = a_(k-1)*x_(k-1) + q_(k-1)
 # a matrix - continuous time motion model
-a = np.array([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+a = np.array([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0], 
               [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-              [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 0.0, 1.0, 0.0], 
               [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 
               [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
-i_a = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+i_a = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0], 
                 [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0, 0.0, 0.0], 
                 [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0], 
                 [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
 
 f_euler = i_a + dt * a
 f_exact = expm(dt * a)
-
-
-gamma = np.array([[0.0],
-                  [0.0],
-                  [0.0],
-                  [0.0],
-                  [1.0],
-                  [1.0]])
+gamma = np.array([[0.0], [0.0], [0.0], [0.0], [1.0], [1.0]])
 
 # q matrix - continuous time process noise covariance
 q = qc * gamma @ np.transpose(gamma)
@@ -70,58 +64,48 @@ q = qc * gamma @ np.transpose(gamma)
 q_euler = dt * q
 # q_exact =
 
-
 # measurement model
 # y_k = h_k*x_k + r_k
 
 # h matrix - measurement model
-h = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],   # x position - GPS
-              [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],   # y position - GPS
-              [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],   # x acceleration - IMU
-              [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])  # y acceleration - IMU
+h = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0], 
+              [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+              [0.0, 0.0, 0.0, 0.0, 1.0, 0.0], 
+              [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
 
 # r matrix - measurement noise covariance
-r = np.array([[0.010, 0.0, 0.0, 0.0],           # x position - GPS
-              [0.0, 0.015, 0.0, 0.0],           # y position - GPS
-              [0.0, 0.0, 0.1, 0.0],             # x acceleration - IMU
-              [0.0, 0.0, 0.0, 0.1]])            # y acceleration - IMU
-r = r @ r
+r = np.array([[0.010, 0.0, 0.0, 0.0], 
+              [0.0, 0.015, 0.0, 0.0],
+              [0.0, 0.0, 0.1, 0.0], 
+              [0.0, 0.0, 0.0, 0.1]])**2
 
 # main program
 
 
 def main():
-    x = x_0
-    p = p_0
-    x_true_final_x = x_0[0]
-    x_true_final_y = x_0[1]
-    x_kalman_final_x = x_0[0]
-    x_kalman_final_y = x_0[1]
-    z_final_x = x_0[0]
-    z_final_y = x_0[1]
+    show_final = 0
+    x_est = x_0
+    p_est = p_0
+    x_true_cat = np.array([x_0[0,0], x_0[1,0]])
+    x_est_cat = np.array([x_0[0,0], x_0[1,0]])
+    z_cat = np.array([x_0[0,0], x_0[1,0]])
     for i in range(N):
-        time = dt * i
-        z, gz = gen_measurement(i)
-        postpross(time, i, x, p, x_true_final_x,
-                  x_true_final_y, x_kalman_final_x, x_kalman_final_y, z_final_x, z_final_y, z, gz)
-        x, p = kalman_filter(x, p, z)
-        x_true_final_x = np.vstack((x_true_final_x, gz[0]))
-        x_true_final_y = np.vstack((x_true_final_y, gz[1]))
-        z_final_x = np.vstack((z_final_x, z[0]))
-        z_final_y = np.vstack((z_final_y, z[1]))
-        x_kalman_final_x = np.vstack((x_kalman_final_x, x[0]))
-        x_kalman_final_y = np.vstack((x_kalman_final_y, x[1]))
+        z, x_true = gen_measurement(i)
+        if i == (N - 1):
+            show_final = 1
+        postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z_cat, z, show_final)
+        x_est, p_est = kalman_filter(x_est, p_est, z)
+        x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
+        z_cat = np.vstack((z_cat, np.transpose(z[0:2])))
+        x_est_cat = np.vstack((x_est_cat, np.transpose(x_est[0:2])))
     print('KF Over')
 
 
-# generate ground truth position gz and noisy position z
+# generate ground truth position x_true and noisy position z
 def gen_measurement(i):
-    gz = np.array([[i],
-                   [i],
-                   [0.0],
-                   [0.0]])
-    z = gz + z_noise * np.random.randn(4, 1)
-    return z, gz
+    x_true = np.array([[i], [i], [0.0], [0.0]])
+    z = x_true + z_noise * np.random.randn(4, 1)
+    return z, x_true
 
 
 # linear kalman filter prediction step
@@ -149,48 +133,48 @@ def kalman_filter(x, p, z):
     return x_upd, p_upd
 
 
-def plot_ellipse(x, p):
-    phi = np.linspace(0, 2*math.pi, 100)
-    p_ellipse = np.array([[p[0, 0], p[0, 1]],
-                          [p[1, 0], p[1, 1]]])
+# postprocessing
+def plot_ellipse(x_est, p_est):
+    phi = np.linspace(0, 2 * math.pi, 100)
+    p_ellipse = np.array([[p_est[0, 0], p_est[0, 1]], [p_est[1, 0], p_est[1, 1]]])
     x0 = 3 * sqrtm(p_ellipse)
     xy_1 = np.array([])
     xy_2 = np.array([])
     for i in range(100):
-        arr = np.array([[math.sin(phi[i])],
-                        [math.cos(phi[i])]])
+        arr = np.array([[math.sin(phi[i])], [math.cos(phi[i])]])
         arr = x0 @ arr
         xy_1 = np.hstack([xy_1, arr[0]])
         xy_2 = np.hstack([xy_2, arr[1]])
-    plt.plot(xy_1 + x[0], xy_2 + x[1], 'r')
+    plt.plot(xy_1 + x_est[0], xy_2 + x_est[1], 'r')
     plt.pause(0.00001)
 
 
-# postprocessing
-def postpross(time, i, x, p, x_true_final_x,
-              x_true_final_y, x_kalman_final_x, x_kalman_final_y, z_final_x, z_final_y, z, gz):
-    if show_animation == 1:
-        plt.plot(x[0], x[1], '*b')
-        plt.plot(gz[0], gz[1], '*r')
-        plt.plot(z[0], z[1], '*k')
-#        print(p)
-        plt.grid(True)
-        plt.pause(0.001)
-        if show_ellipse == 1:
-            plot_ellipse(x[0:2], p)
-    if i == N - 1:
-        fig = plt.figure()
-        f = fig.add_subplot(111)
-        f.plot(x_true_final_x, x_true_final_y, 'r', label='True Position')
-        f.plot(x_kalman_final_x, x_kalman_final_y,
-               'b', label='Estimated Position')
-        f.plot(z_final_x, z_final_y, '*k', label='Noisy Measurements')
-        f.set_xlabel('x [m]')
-        f.set_ylabel('y [m]')
-        f.set_title('Linear Kalman Filter - Constant Acceleration Model')
-        f.legend(loc='upper left', shadow=True, fontsize='large')
-        plt.grid(True)
-        plt.show()
+def plot_final(x_true_cat, x_est_cat, z_cat):
+    fig = plt.figure()
+    f = fig.add_subplot(111)
+    f.plot(x_true_cat[0:, 0], x_true_cat[0:, 1], 'r', label='True Position')
+    f.plot(x_est_cat[0:, 0], x_est_cat[0:, 1], 'b', label='Estimated Position')
+    f.plot(z_cat[0:, 0], z_cat[0:, 1], '+g', label='Noisy Measurements')
+    f.set_xlabel('x [m]')
+    f.set_ylabel('y [m]')
+    f.set_title('Linear Kalman Filter - Constant Acceleration Model')
+    f.legend(loc='upper left', shadow=True, fontsize='large')
+    plt.grid(True)
+    plt.show()
 
+def plot_animation(x_true, x_est, z):
+    plt.plot(x_true[0], x_true[1], '.r')
+    plt.plot(x_est[0], x_est[1], '.b')
+    plt.plot(z[0], z[1], '+g')
+    plt.grid(True)
+    plt.pause(0.001)
+
+def postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z_cat, z, show_final):
+    if show_animation == 1:
+        plot_animation(x_true, x_est, z)
+        if show_ellipse == 1:
+            plot_ellipse(x_est[0:2], p_est)
+    if show_final == 1:
+            plot_final(x_true_cat, x_est_cat, z_cat)
 
 main()

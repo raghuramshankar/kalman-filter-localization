@@ -13,13 +13,11 @@ from scipy.linalg import sqrtm
 
 # initalize global variables
 dt = 0.1                                            # seconds
-N = 63                                             # number of samples
+N = 100                                             # number of samples
 u_noise = np.array([[0.1, 0.0],
                     [0.0, np.deg2rad(10)]])         # input noise
 z_noise = np.array([[0.1, 0.0],
                     [0.0, 0.1]])                    # measurement noise
-show_animation = 1
-show_ellipse = 1
 
 # initial guesses
 # prior mean
@@ -62,57 +60,48 @@ h = np.array([[1.0, 0.0, 0.0, 0.0],
               [0.0, 1.0, 0.0, 0.0]])
 
 # r matrix - measurement noise covariance
-r = np.array([[0.15, 0.0],
-              [0.0, 0.10]])**2
+r = np.array([[0.015, 0.0],
+              [0.0, 0.010]])**2
 
 
 # main program
 def main():
-    x = x_0
-    p = p_0
+    show_final = 0
+    show_animation = 1
+    show_ellipse = 1
+    x_est = x_0
+    p_est = p_0
     x_true = x_0
     p_true = p_0
-    x_true_final_x = x_0[0]
-    x_true_final_y = x_0[1]
-    x_kalman_final_x = x_0[0]
-    x_kalman_final_y = x_0[1]
-    z_final_x = x_0[0]
-    z_final_y = x_0[0]
+    x_true_cat = np.array([x_0[0,0], x_0[1,0]])
+    x_est_cat = np.array([x_0[0,0], x_0[1,0]])
+    z_cat = np.array([x_0[0,0], x_0[1,0]])
     for i in range(N):
-        # time tick
-        time = dt * i
-        # 1. generate input velocity, yaw rate (both are constant)
         u, gu = gen_input()
-        # 2. generate true values of state variables from motion model and true input
         x_true, p_true = extended_prediction(x_true, p_true, gu)
-        # 3. generate noisy measurements on true state values
         z, gz = gen_measurement(x_true)
-        # 4. postprocess and plot data
-        postpross(time, i, x, p, x_true, x_true_final_x,
-                  x_true_final_y, x_kalman_final_x, x_kalman_final_y, z_final_x, z_final_y, u, z, gu, gz)
-        # 5. extended kalman filter
-        x, p = extended_kalman_filter(x, p, u, z)
-        x_true_final_x = np.vstack((x_true_final_x, x_true[0]))
-        x_true_final_y = np.vstack((x_true_final_y, x_true[1]))
-        x_kalman_final_x = np.vstack((x_kalman_final_x, x[0]))
-        x_kalman_final_y = np.vstack((x_kalman_final_y, x[1]))
-        z_final_x = np.vstack((z_final_x, z[0]))
-        z_final_y = np.vstack((z_final_y, z[1]))
+        if i == (N - 1):
+            show_final = 1
+        postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z, z_cat, show_animation, show_ellipse, show_final)
+        x_est, p_est = extended_kalman_filter(x_est, p_est, u, z)
+        x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
+        z_cat = np.vstack((z_cat, np.transpose(z[0:2])))
+        x_est_cat = np.vstack((x_est_cat, np.transpose(x_est[0:2])))
     print('EKF Over')
 
 
 # extended kalman filter
-def extended_kalman_filter(x, p, u, z):
-    x_pred, p_pred = extended_prediction(x, p, u)
+def extended_kalman_filter(x_est, p_est, u, z):
+    x_pred, p_pred = extended_prediction(x_est, p_est, u)
 #    return x_pred, p_pred
     x_upd, p_upd = extended_update(x_pred, p_pred, u, z)
     return x_upd, p_upd
 
 
 # generate ground truth measurement vector gz, noisy measurement vector z
-def gen_measurement(x_k):
+def gen_measurement(x_true):
     # x position [m], y position [m]
-    gz = h @ x_k
+    gz = h @ x_true
     z = gz + z_noise @ np.random.randn(2, 1)
     return z, gz
 
@@ -157,47 +146,51 @@ def extended_update(x_pred, p_pred, u, z):
     return x_upd.astype(float), p_upd.astype(float)
 
 
-def plot_ellipse(x, p):
-    phi = np.linspace(0, 2*math.pi, 100)
-    p_ellipse = np.array([[p[0, 0], p[0, 1]],
-                          [p[1, 0], p[1, 1]]])
+# postprocessing
+def plot_animation(x_true, x_est, z):
+    plt.plot(x_true[0], x_true[1], '.r')
+    plt.plot(x_est[0], x_est[1], '.b')
+    plt.plot(z[0], z[1], '+g')
+    plt.grid(True)
+    plt.pause(0.001)
+    
+
+def plot_ellipse(x_est, p_est):
+    phi = np.linspace(0, 2 * math.pi, 100)
+    p_ellipse = np.array([[p_est[0, 0], p_est[0, 1]], [p_est[1, 0], p_est[1, 1]]])
     x0 = 3 * sqrtm(p_ellipse)
     xy_1 = np.array([])
     xy_2 = np.array([])
     for i in range(100):
-        arr = np.array([[math.sin(phi[i])],
-                        [math.cos(phi[i])]])
+        arr = np.array([[math.sin(phi[i])], [math.cos(phi[i])]])
         arr = x0 @ arr
         xy_1 = np.hstack([xy_1, arr[0]])
         xy_2 = np.hstack([xy_2, arr[1]])
-    plt.plot(0.01*xy_1 + x[0], 0.01*xy_2 + x[1], 'r')
+    plt.plot(xy_1 + x_est[0], xy_2 + x_est[1], 'r')
     plt.pause(0.00001)
 
 
-# postprocessing
-def postpross(time, i, x, p, x_true, x_true_final_x, x_true_final_y, x_kalman_final_x, x_kalman_final_y, z_final_x, z_final_y, u, z, gu, gz):
+def plot_final(x_true_cat, x_est_cat, z_cat):
+    fig = plt.figure()
+    f = fig.add_subplot(111)
+    f.plot(x_true_cat[0:, 0], x_true_cat[0:, 1], 'r', label='True Position')
+    f.plot(x_est_cat[0:, 0], x_est_cat[0:, 1], 'b', label='Estimated Position')
+    f.plot(z_cat[0:, 0], z_cat[0:, 1], '+g', label='Noisy Measurements')
+    f.set_xlabel('x [m]')
+    f.set_ylabel('y [m]')
+    f.set_title('Linear Kalman Filter - Constant Acceleration Model')
+    f.legend(loc='upper left', shadow=True, fontsize='large')
+    plt.grid(True)
+    plt.show()
+
+
+def postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z, z_cat, show_animation, show_ellipse, show_final):
     if show_animation == 1:
-        plt.plot(x[0], x[1], "*b")
-        plt.plot(x_true[0], x_true[1], "*r")
-        plt.plot(z[0], z[1], '*k')
-        plt.plot(x[0], x[1], '*b')
-        plt.grid(True)
-        plt.pause(0.0001)
+        plot_animation(x_true, x_est, z)
         if show_ellipse == 1:
-            plot_ellipse(x[0:2], p)
-    if i == N - 1:
-        fig = plt.figure()
-        f = fig.add_subplot(111)
-        f.plot(x_true_final_x, x_true_final_y, 'r', label='True Position')
-        f.plot(x_kalman_final_x, x_kalman_final_y,
-               'b', label='Estimated Position')
-#        f.plot(z_final_x, z_final_y, '*k', label='Noisy Measurements')
-        f.set_xlabel('x [m]')
-        f.set_ylabel('y [m]')
-        f.set_title('Extended Kalman Filter - Circular Robot')
-        f.legend(loc='upper left', shadow=True, fontsize='large')
-        plt.grid(True)
-        plt.show()
+            plot_ellipse(x_est[0:2], p_est)
+    if show_final == 1:
+            plot_final(x_true_cat, x_est_cat, z_cat)
 
 
 main()

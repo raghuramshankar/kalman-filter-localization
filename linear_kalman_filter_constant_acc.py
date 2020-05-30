@@ -15,46 +15,45 @@ dt = 0.01  # seconds
 N = 50  # number of samples
 qc = 0.1  # process noise magnitude
 z_noise = 1  # measurement noise magnitude
-show_animation = 1
+show_animation = 0
 show_ellipse = 0
 
 # initial guesses
 # prior mean
-x_0 = np.array([
-    [0.0],  # x position
-    [0.0],  # y position
-    [0.0],  # x velocity
-    [0.0],  # y velocity
-    [0.0],  # x acceleration
-    [0.0],  # y acceleration
-])
+x_0 = np.array([[0.0],  # x position
+                [0.0],  # y position
+                [0.0],  # x velocity
+                [0.0],  # y velocity
+                [0.0],  # x acceleration
+                [0.0]  # y acceleration
+                ])
 
 # prior covariance
-p_0 = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0], 
+p_0 = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                 [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0, 0.0, 0.0], 
+                [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
                 [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0], 
+                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
                 [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
 
 # motion model
 # x_(k) = a_(k-1)*x_(k-1) + q_(k-1)
 # a matrix - continuous time motion model
-a = np.array([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0], 
+a = np.array([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
               [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-              [0.0, 0.0, 0.0, 0.0, 1.0, 0.0], 
+              [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
               [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 
+              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
               [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
-i_a = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0], 
+i_6 = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                 [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0, 0.0, 0.0], 
+                [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
                 [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0], 
+                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
                 [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
 
-f_euler = i_a + dt * a
+f_euler = i_6 + dt * a
 f_exact = expm(dt * a)
 gamma = np.array([[0.0], [0.0], [0.0], [0.0], [1.0], [1.0]])
 
@@ -68,15 +67,15 @@ q_euler = dt * q
 # y_k = h_k*x_k + r_k
 
 # h matrix - measurement model
-h = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0], 
+h = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
               [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-              [0.0, 0.0, 0.0, 0.0, 1.0, 0.0], 
+              [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
               [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
 
 # r matrix - measurement noise covariance
-r = np.array([[0.010, 0.0, 0.0, 0.0], 
+r = np.array([[0.010, 0.0, 0.0, 0.0],
               [0.0, 0.015, 0.0, 0.0],
-              [0.0, 0.0, 0.1, 0.0], 
+              [0.0, 0.0, 0.1, 0.0],
               [0.0, 0.0, 0.0, 0.1]])**2
 
 # main program
@@ -86,14 +85,15 @@ def main():
     show_final = 0
     x_est = x_0
     p_est = p_0
-    x_true_cat = np.array([x_0[0,0], x_0[1,0]])
-    x_est_cat = np.array([x_0[0,0], x_0[1,0]])
-    z_cat = np.array([x_0[0,0], x_0[1,0]])
+    x_true_cat = np.array([x_0[0, 0], x_0[1, 0]])
+    x_est_cat = np.array([x_0[0, 0], x_0[1, 0]])
+    z_cat = np.array([x_0[0, 0], x_0[1, 0]])
     for i in range(N):
         z, x_true = gen_measurement(i)
         if i == (N - 1):
             show_final = 1
-        postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z_cat, z, show_final)
+        postpross(x_true, x_true_cat, x_est, p_est,
+                  x_est_cat, z_cat, z, show_final)
         x_est, p_est = kalman_filter(x_est, p_est, z)
         x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
         z_cat = np.vstack((z_cat, np.transpose(z[0:2])))
@@ -136,7 +136,8 @@ def kalman_filter(x, p, z):
 # postprocessing
 def plot_ellipse(x_est, p_est):
     phi = np.linspace(0, 2 * math.pi, 100)
-    p_ellipse = np.array([[p_est[0, 0], p_est[0, 1]], [p_est[1, 0], p_est[1, 1]]])
+    p_ellipse = np.array(
+        [[p_est[0, 0], p_est[0, 1]], [p_est[1, 0], p_est[1, 1]]])
     x0 = 3 * sqrtm(p_ellipse)
     xy_1 = np.array([])
     xy_2 = np.array([])
@@ -162,6 +163,7 @@ def plot_final(x_true_cat, x_est_cat, z_cat):
     plt.grid(True)
     plt.show()
 
+
 def plot_animation(x_true, x_est, z):
     plt.plot(x_true[0], x_true[1], '.r')
     plt.plot(x_est[0], x_est[1], '.b')
@@ -169,12 +171,14 @@ def plot_animation(x_true, x_est, z):
     plt.grid(True)
     plt.pause(0.001)
 
+
 def postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z_cat, z, show_final):
     if show_animation == 1:
         plot_animation(x_true, x_est, z)
         if show_ellipse == 1:
             plot_ellipse(x_est[0:2], p_est)
     if show_final == 1:
-            plot_final(x_true_cat, x_est_cat, z_cat)
+        plot_final(x_true_cat, x_est_cat, z_cat)
+
 
 main()

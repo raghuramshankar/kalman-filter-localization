@@ -1,7 +1,8 @@
 # implementation of linear kalman filter using 2D constant acceleration model
 
-# measurement matrix:     gps position and imu acceleration in x and y axis (4 x 1)
-# state matrix:     position, velocity and acceleration in x and y axis (6 x 1)
+# state matrix:             2D x-y position, velocity and acceleration in x and y axis (6 x 1)
+# input matrix:             --None--
+# measurement matrix:       2D x-y position and imu acceleration in x and y axis (4 x 1)
 
 import math
 import matplotlib.pyplot as plt
@@ -12,13 +13,12 @@ from scipy.linalg import sqrtm
 
 # initalize global variables
 dt = 0.01  # seconds
-N = 50  # number of samples
+N = 100  # number of samples
 qc = 0.1  # process noise magnitude
-z_noise = 1  # measurement noise magnitude
-show_animation = 0
-show_ellipse = 0
 
-# initial guesses
+z_noise = 1  # measurement noise magnitude
+
+
 # prior mean
 x_0 = np.array([[0.0],  # x position
                 [0.0],  # y position
@@ -36,8 +36,7 @@ p_0 = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                 [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
                 [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
 
-# motion model
-# x_(k) = a_(k-1)*x_(k-1) + q_(k-1)
+
 # a matrix - continuous time motion model
 a = np.array([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
               [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
@@ -46,25 +45,15 @@ a = np.array([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
               [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
               [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
-i_6 = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
-
-f_euler = i_6 + dt * a
-f_exact = expm(dt * a)
+              
+a = expm(dt * a)
 gamma = np.array([[0.0], [0.0], [0.0], [0.0], [1.0], [1.0]])
+
 
 # q matrix - continuous time process noise covariance
 q = qc * gamma @ np.transpose(gamma)
-
 q_euler = dt * q
-# q_exact =
 
-# measurement model
-# y_k = h_k*x_k + r_k
 
 # h matrix - measurement model
 h = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -72,17 +61,19 @@ h = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
               [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
               [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
 
+
 # r matrix - measurement noise covariance
 r = np.array([[0.010, 0.0, 0.0, 0.0],
               [0.0, 0.015, 0.0, 0.0],
               [0.0, 0.0, 0.1, 0.0],
               [0.0, 0.0, 0.0, 0.1]])**2
 
+
 # main program
-
-
 def main():
-    show_final = 0
+    show_final = 1
+    show_animation = 1
+    show_ellipse = 0
     x_est = x_0
     p_est = p_0
     x_true_cat = np.array([x_0[0, 0], x_0[1, 0]])
@@ -90,10 +81,12 @@ def main():
     z_cat = np.array([x_0[0, 0], x_0[1, 0]])
     for i in range(N):
         z, x_true = gen_measurement(i)
-        if i == (N - 1):
-            show_final = 1
+        if i == (N - 1) and show_final == 1:
+            show_final_flag = 1
+        else:
+            show_final_flag = 0
         postpross(x_true, x_true_cat, x_est, p_est,
-                  x_est_cat, z_cat, z, show_final)
+                  x_est_cat, z_cat, z, show_animation, show_ellipse, show_final_flag)
         x_est, p_est = kalman_filter(x_est, p_est, z)
         x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
         z_cat = np.vstack((z_cat, np.transpose(z[0:2])))
@@ -128,7 +121,7 @@ def linear_update(x_hat, p_hat, y, h, r):
 
 # linear kalman filter
 def kalman_filter(x, p, z):
-    x_pred, p_pred = linear_prediction(f_exact, x, p, q_euler)
+    x_pred, p_pred = linear_prediction(a, x, p, q_euler)
     x_upd, p_upd = linear_update(x_pred, p_pred, z, h, r)
     return x_upd, p_upd
 
@@ -172,12 +165,12 @@ def plot_animation(x_true, x_est, z):
     plt.pause(0.001)
 
 
-def postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z_cat, z, show_final):
+def postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z_cat, z, show_animation, show_ellipse, show_final_flag):
     if show_animation == 1:
         plot_animation(x_true, x_est, z)
         if show_ellipse == 1:
             plot_ellipse(x_est[0:2], p_est)
-    if show_final == 1:
+    if show_final_flag == 1:
         plot_final(x_true_cat, x_est_cat, z_cat)
 
 

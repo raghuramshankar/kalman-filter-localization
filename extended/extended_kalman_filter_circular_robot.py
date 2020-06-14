@@ -12,8 +12,8 @@ import scipy.integrate as integrate
 from scipy.linalg import sqrtm
 
 # initalize global variables
-dt = 0.1                                            # seconds
-N = 100                                             # number of samples
+dt = 0.01                                            # seconds
+N = 1000                                             # number of samples
 u_noise = np.array([[0.1, 0.0],
                     [0.0, np.deg2rad(10)]])         # input noise
 z_noise = np.array([[0.1, 0.0],
@@ -49,7 +49,7 @@ i_4 = np.array([[1.0, 0.0, 0.0, 0.0],
 q = np.array([[10.0, 0.0,    0.0,               0.0],    # x position    [m]
               [0.0, 10.0,    0.0,               0.0],    # y position    [m]
               [0.0, 0.0,    np.deg2rad(10.0),   0.0],   # yaw          [rad]
-              [0.0, 0.0,    0.0,               10.0]])   # velocity      [m/s]
+              [0.0, 0.0,    0.0,               10.0]])*0   # velocity      [m/s]
 
 
 # measurement model
@@ -61,14 +61,14 @@ h = np.array([[1.0, 0.0, 0.0, 0.0],
 
 # r matrix - measurement noise covariance
 r = np.array([[0.015, 0.0],
-              [0.0, 0.010]])**2
+              [0.0, 0.010]])*20000000000000
 
 
 # main program
 def main():
     show_final = 0
-    show_animation = 1
-    show_ellipse = 1
+    show_animation = 0
+    show_ellipse = 0
     x_est = x_0
     p_est = p_0
     x_true = x_0
@@ -109,7 +109,7 @@ def gen_measurement(x_true):
 # generate ground truth input vector gu, noisy input vector u
 def gen_input():
     # velocity [m/s], yaw rate [rad/s]
-    gu = np.array([[1.0], [0.1]])
+    gu = np.array([[1.0], [1.0]])
     u = gu + u_noise @ np.random.randn(2, 1)
     return u, gu
 
@@ -178,7 +178,7 @@ def plot_final(x_true_cat, x_est_cat, z_cat):
     f.plot(z_cat[0:, 0], z_cat[0:, 1], '+g', label='Noisy Measurements')
     f.set_xlabel('x [m]')
     f.set_ylabel('y [m]')
-    f.set_title('Linear Kalman Filter - Constant Acceleration Model')
+    f.set_title('Extended Kalman Filter - Circular Robot Model')
     f.legend(loc='upper left', shadow=True, fontsize='large')
     plt.grid(True)
     plt.show()

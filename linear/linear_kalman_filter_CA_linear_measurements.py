@@ -45,7 +45,7 @@ a = np.array([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
               [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
               [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
-              
+
 a = expm(dt * a)
 gamma = np.array([[0.0], [0.0], [0.0], [0.0], [1.0], [1.0]])
 
@@ -73,7 +73,7 @@ r = np.array([[0.010, 0.0, 0.0, 0.0],
 def main():
     show_final = 1
     show_animation = 1
-    show_ellipse = 0
+    show_ellipse = 1
     x_est = x_0
     p_est = p_0
     x_true_cat = np.array([x_0[0, 0], x_0[1, 0]])

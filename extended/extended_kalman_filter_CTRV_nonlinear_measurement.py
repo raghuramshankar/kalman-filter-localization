@@ -1,8 +1,8 @@
-# implementation of extended kalman filter using CTRV motion model and linear measurement model
+# implementation of extended kalman filter using CTRV motion model and squared position measurement model
 
 # state matrix:             2D x-y position, heading, velocity and yaw rate (turn rate) (5 x 1)
-# input matrix:             --None--
-# measurement matrix:       2D x-y position from GPS, velcity and yaw rate (4 x 1)
+# input matrix:             velocity, yaw rate from velocity sensor and gyroscope (2 x 1)
+# measurement matrix:       squared values of x-y position from gps (2 x 1)
 
 import math
 import matplotlib.pyplot as plt
@@ -12,22 +12,20 @@ import scipy.integrate as integrate
 from scipy.linalg import sqrtm
 
 # initalize global variables
-dt = 0.1                                            # seconds
-N = 630                                             # number of samples
-
-
-z_noise = np.array([[1.0, 0.0, 0.0, 0.0],
-                    [0.0, 1.0, 0.0, 0.0],
-                    [0.0, 0.0, 1.0, 0.0],
-                    [0.0, 0.0, 0.0, 1.0]])           # measurement noise
+dt = 0.1                                                # seconds
+N = 63                                                  # number of samples
+u_noise = np.array([[0.1, 0.0],
+                    [0.0, np.deg2rad(10)]])             # input noise
+z_noise = np.array([[1.0, 0.0],
+                    [0.0, 1.0]])*0                       # measurement noise
 
 
 # prior mean
 x_0 = np.array([[0.0],                                  # x position    [m]
                 [0.0],                                  # y position    [m]
                 [0.0],                                  # yaw           [rad]
-                [1.0],                                 # velocity      [m/s]
-                [0.1]])                                 # yaw rate      [rad/s]
+                [10.0],                                 # velocity      [m/s]
+                [1.0]])                                 # yaw rate      [rad/s]
 
 
 # prior covariance
@@ -39,31 +37,22 @@ p_0 = np.array([[1.0, 0.0, 0.0, 0.0, 0.0],
 
 
 # q matrix - process noise
-q = np.array([[1.0, 0.0,    0.0,               0.0, 0.0],
-              [0.0, 1.0,    0.0,               0.0, 0.0],
-              [0.0, 0.0,    np.deg2rad(1.0),   0.0, 0.0],
-              [0.0, 0.0,    0.0,               1.0, 0.0],
-              [0.0, 0.0,    0.0,                0.0, np.deg2rad(1.0)]])*0
-
-
-# h matrix - measurement model
-h = np.array([[1.0, 0.0, 0.0, 0.0, 0.0],
-              [0.0, 1.0, 0.0, 0.0, 0.0],
-              [0.0, 0.0, 0.0, 1.0, 0.0],
-              [0.0, 0.0, 0.0, 0.0, 1.0]])
+q = np.array([[10.0, 0.0,    0.0,               0.0, 0.0],
+              [0.0, 10.0,    0.0,               0.0, 0.0],
+              [0.0, 0.0,    np.deg2rad(10.0),   0.0, 0.0],
+              [0.0, 0.0,    0.0,               10.0, 0.0],
+              [0.0, 0.0,    0.0,                0.0, np.deg2rad(1.0)]])
 
 
 # r matrix - measurement noise covariance
-r = np.array([[0.015, 0.0, 0.0, 0.0],
-              [0.0, 0.010, 0.0, 0.0],
-              [0.0, 0.0, 0.010, 0.0],
-              [0.0, 0.0, 0.0, 0.010]])*20000000
+r = np.array([[0.015, 0.0],
+              [0.0, 0.010]])**2
 
 
 # main program
 def main():
-    show_final = 1
-    show_animation = 0
+    show_final = 0
+    show_animation = 1
     show_ellipse = 0
     x_est = x_0
     p_est = p_0
@@ -73,47 +62,56 @@ def main():
     x_est_cat = np.array([x_0[0, 0], x_0[1, 0]])
     z_cat = np.array([x_0[0, 0], x_0[1, 0]])
     for i in range(N):
-        x_true, p_true = extended_prediction(x_true, p_true)
+        u, gu = gen_input()
+        x_true, p_true = nonlinear_prediction(x_true, p_true, u)
         z, gz = gen_measurement(x_true)
-        if i == (N - 1) and show_final == 1:
-            show_final_flag = 1
-        else:
-            show_final_flag = 0
-        postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z,
-                  z_cat, show_animation, show_ellipse, show_final_flag)
-        x_est, p_est = extended_kalman_filter(x_est, p_est, z)
+        if i == (N - 1):
+            show_final = 1
+        postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, gz,
+                  z_cat, show_animation, show_ellipse, show_final)
+        x_est, p_est = extended_kalman_filter(x_est, p_est, u, z)
         x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
         z_cat = np.vstack((z_cat, np.transpose(z[0:2])))
         x_est_cat = np.vstack((x_est_cat, np.transpose(x_est[0:2])))
     print('EKF Over')
 
 
+def gen_input():
+    # velocity [m/s], yaw rate [rad/s]
+    gu = np.array([[1.0], [0.1]])
+    u = gu + u_noise @ np.random.randn(2, 1)
+    return u, gu
+
+
 # generate ground truth measurement vector gz, noisy measurement vector z
 def gen_measurement(x_true):
     # x position [m], y position [m]
-    gz = h @ x_true
-    z = gz + z_noise @ np.random.randn(4, 1)
+    gz = np.array([[x_true[0], 0.0, 0.0, 0.0],
+                   [0.0, x_true[1], 0.0, 0.0]])
+    z = gz**2 + z_noise @ np.random.randn(2, 1)
     return z, gz
 
 
 # extended kalman filter
-def extended_kalman_filter(x_est, p_est, z):
-    x_pred, p_pred = extended_prediction(x_est, p_est)
+def extended_kalman_filter(x_est, p_est, u, z):
+    x_pred, p_pred = nonlinear_prediction(x_est, p_est, u)
     # return x_pred, p_pred
     x_upd, p_upd = linear_update(x_pred, p_pred, z)
     return x_upd, p_upd
 
 
 # extended kalman filter nonlinear prediction step
-def extended_prediction(x, p):
-
+def nonlinear_prediction(x, p, u):
     # f(x)
-    x[0] = x[0] + (x[3]/x[4]) * (np.sin(x[4] * dt + x[2]) - np.sin(x[2]))
-    x[1] = x[1] + (x[3]/x[4]) * (- np.cos(x[4] * dt + x[2]) + np.cos(x[2]))
-    x[2] = x[2] + x[4] * dt
-    x[3] = x[3]
-    x[4] = x[4]
+    x[0] = float(x[0] + (x[3]/x[4]) * (np.sin(x[4]*dt+x[2]) - np.sin(x[2])))
+    x[1] = float(x[1] + (x[3]/x[4]) * (-np.cos(x[4]*dt+x[2]) + np.cos(x[2])))
+    x[2] = float(x[2] + x[4] * dt)
+    x[3] = float(x[3])
+    x[4] = float(x[4])
 
+    ## change x[3] (state velocity) to u[0] (input velocity)
+
+    # F(x)
     a13 = float((x[3]/x[4]) * (np.cos(x[4]*dt+x[2]) - np.cos(x[2])))
     a14 = float((1.0/x[4]) * (np.sin(x[4]*dt+x[2]) - np.sin(x[2])))
     a15 = float((dt*x[3]/x[4])*np.cos(x[4]*dt+x[2]) -
@@ -128,19 +126,33 @@ def extended_prediction(x, p):
                     [0.0, 0.0, 1.0, 0.0, dt],
                     [0.0, 0.0, 0.0, 1.0, 0.0],
                     [0.0, 0.0, 0.0, 0.0, 1.0]])
-    x_pred = x
+
+    b = np.array([[dt * math.cos(x[2]),  0],
+                [dt * math.sin(x[2]),  0],
+                [0,                   dt],
+                [1,                   0],
+                [0,                   0]])
+
+    x_pred = x + b @ u
     p_pred = jF @ p @ np.transpose(jF) + q
     return x_pred.astype(float), p_pred.astype(float)
 
 
 # extended kalman filter linear update step
-def linear_update(x_pred, p_pred, z):
-    s = h @ p_pred @ np.transpose(h) + r
-    k = p_pred @ np.transpose(h) @ np.linalg.pinv(s)
-    v = z - h @ x_pred
+def linear_update(x, p, z):
+    # hx
+    hx = np.array([x[0]**2, x[1]**2])
+    
+    # Hx
+    Hx = np.array([[1/(2*math.sqrt(x[0])), 0.0, 0.0, 0.0, 0.0],
+                   [0.0, 1/(2*math.sqrt(x[1])), 0.0, 0.0, 0.0]])
 
-    x_upd = x_pred + k @ v
-    p_upd = p_pred - k @ s @ np.transpose(k)
+    s = Hx @ p @ np.transpose(Hx) + r
+    k = p @ np.transpose(Hx) @ np.linalg.pinv(s)
+    v = z - hx
+
+    x_upd = x + k @ v
+    p_upd = p - k @ s @ np.transpose(k)
     return x_upd.astype(float), p_upd.astype(float)
 
 
@@ -183,12 +195,12 @@ def plot_final(x_true_cat, x_est_cat, z_cat):
     plt.show()
 
 
-def postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z, z_cat, show_animation, show_ellipse, show_final_flag):
+def postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z, z_cat, show_animation, show_ellipse, show_final):
     if show_animation == 1:
         plot_animation(x_true, x_est, z)
         if show_ellipse == 1:
             plot_ellipse(x_est[0:2], p_est)
-    if show_final_flag == 1:
+    if show_final == 1:
         plot_final(x_true_cat, x_est_cat, z_cat)
 
 

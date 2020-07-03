@@ -1,3 +1,5 @@
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/raghuramshankar/kalman-filter-localization.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/raghuramshankar/kalman-filter-localization/alerts/)
+
 # Kalman Filter
 
 Implementation of sensor fusion using Kalman Filters for Localization of Autonomous Vehicles.
@@ -16,7 +18,7 @@ The Kalman Filter algorithm uses the following steps:
     
 ## Linear Kalman Filter:
 
-to be updated
+![Open Notebook](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/jupyter/KF-CA-Linear.ipynb)
 
 ## Extended Kalman Filter:
 

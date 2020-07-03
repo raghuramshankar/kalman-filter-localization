@@ -4,31 +4,12 @@
 
 Implementation of sensor fusion using Kalman Filters for Localization of Autonomous Vehicles.
 
-<<<<<<< Updated upstream
-=======
 ## Optimal Filtering:
 
 Objective of Optimal Filtering is to compute \$p(x*k|y*{1:k})\$ for each time step. This means we want to compute all the state variables of our plant at the given time instant, while taken into account all the measurements of our state variables from the available sensors from start to the present. \
-\
+
 This is achieved using a recursive solution to reduce computational costs, without which the complexity of the solution would be a function of the number of time steps. We do this by taking advantage of knowledge of the physics of the plant, called the motion model to predict future states of the plant given its history, and updating that prediction with measurements from sensors at each time step using the measurement model.
 
-## Motion Model:
-
-The general motion model equation for solving the optimal filtering problem is: \
-\
-$x_{k} = a_{k-1} \cdot x_{k-1} + q_{k-1}$ \
-\
-For this project, $a_k$ is taken as the discrete time motion model state transition matrix, $q_k$ is the discrete time process noise.
-
-## Measurement Model:
-
-The general measurement model equation for solving the optimal filtering problem is: \
-\
-$z_k = h_k \cdot x_k + r_k$ \
-\
-For this project, $h_k$ is taken as the linear measurement model measurement matrix, $r_k$ is the discrete time process noise.
-
->>>>>>> Stashed changes
 ## Kalman Filter:
 
 The Kalman Filter is widely regarded as the best solution to the optimal filtering problem. When working with linear and gaussian variables, the Kalman Filter is able to provide the best possible estimate of the concerned state variables while accounting for uncertainties, noise and delays in the system. This is also possible when the state variables are internal and not directly measurable, but the physical relationships of the system are known through the motion model and the measurement model. 

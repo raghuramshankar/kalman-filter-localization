@@ -32,4 +32,4 @@ jF = F.jacobian(state)
 h = sp.Matrix([sp.sqrt(x), sp.sqrt(y)])
 jH = h.jacobian(state)
 
-print(jH)
+print(jF)

@@ -15,12 +15,12 @@ import os
 from pygifsicle import optimize
 
 # initalize global variables
-dt = 0.1  # seconds
+dt = 0.01  # seconds
 N = 300  # number of samples
 qc = 0.1  # process noise magnitude
-z_noise = 1  # measurement noise magnitude
+z_noise = 0.1  # measurement noise magnitude
 images = []
-save_path = "kf_ca_2.gif"
+save_path = "kf_ca_linear_2.gif"
 
 # prior mean
 x_0 = np.array([[0.0],  # x position
@@ -94,7 +94,7 @@ def main():
         x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
         z_cat = np.vstack((z_cat, np.transpose(z[0:2])))
         x_est_cat = np.vstack((x_est_cat, np.transpose(x_est[0:2])))
-    im.mimsave(save_path, images, duration = 0.001)
+    im.mimsave(save_path, images, duration = 0.01)
     # optimize(save_path)
     print('KF Over')
 
@@ -163,7 +163,7 @@ def plot_final(x_true_cat, x_est_cat, z_cat):
 
 
 def plot_animation(x_true, x_est, z):
-    plt.plot(x_true[0], x_true[1], '.r')
+    # plt.plot(x_true[0], x_true[1], '.r')
     plt.plot(x_est[0], x_est[1], '.b')
     plt.plot(z[0], z[1], '+g')
     plt.grid(True)
@@ -177,11 +177,11 @@ def postpross(i, x_true, x_true_cat, x_est, p_est, x_est_cat, z_cat, z, show_ani
             plot_ellipse(x_est[0:2], p_est)
     if show_final_flag == 1:
         plot_final(x_true_cat, x_est_cat, z_cat)
-    fname = 'kf_ca_'+ str(i)
+    fname = 'kf_ca_'+ str(i) + '.png'
     plt.savefig(fname, dpi=None, facecolor='w', edgecolor='w',
         orientation='portrait', papertype=None, format=None,
         transparent=False, bbox_inches=None, pad_inches=0.1)
-    fname = 'kf_ca_'+ str(i) + '.png'
+    # fname = 'kf_ca_'+ str(i) + '.png'
     images.append(im.imread(fname))
     os.remove(fname)
 

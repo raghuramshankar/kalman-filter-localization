@@ -24,6 +24,7 @@ The Kalman Filter algorithm uses the following steps:
     
 ## Linear Kalman Filter:
 
+![kf-ca-linear.gif](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/jupyter/kf_ca_linear.gif)
 ![Open Notebook](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/jupyter/KF-CA-Linear.ipynb)
 
 ## Extended Kalman Filter:

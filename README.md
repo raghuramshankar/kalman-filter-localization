@@ -10,3 +10,7 @@ to be updated
 
 ## Cubature Kalman Filter:
 to be updated
+
+## References:
+- ![AMZ Driverless FSD Resources](https://github.com/AMZ-Driverless/fsd-resources)
+- ![PythonRobotics](https://github.com/AtsushiSakai/PythonRobotics)

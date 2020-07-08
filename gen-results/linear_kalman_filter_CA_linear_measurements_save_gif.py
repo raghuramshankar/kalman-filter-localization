@@ -15,12 +15,12 @@ import os
 from pygifsicle import optimize
 
 # initalize global variables
-dt = 0.01  # seconds
+dt = 0.1  # seconds
 N = 300  # number of samples
 qc = 0.1  # process noise magnitude
-z_noise = 0.1  # measurement noise magnitude
+z_noise = 0.5  # measurement noise magnitude
 images = []
-save_path = "kf_ca_linear_2.gif"
+save_path = "kf_ca_linear.gif"
 
 # prior mean
 x_0 = np.array([[0.0],  # x position

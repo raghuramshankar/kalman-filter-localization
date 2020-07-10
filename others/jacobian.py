@@ -1,11 +1,4 @@
-import math
-import numpy as np
-from scipy.sparse.linalg import expm
-import scipy.integrate as integrate
-from scipy.linalg import sqrtm
 import sympy as sp
-from sympy import init_printing
-init_printing(use_latex=True)
 
 x, y, psi, v, dpsi, T = sp.symbols('x y psi v dpsi T')
 

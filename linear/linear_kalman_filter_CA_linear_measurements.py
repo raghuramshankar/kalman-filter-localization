@@ -8,12 +8,11 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.sparse.linalg import expm
-import scipy.integrate as integrate
 from scipy.linalg import sqrtm
 
 # initalize global variables
 dt = 0.01  # seconds
-N = 100  # number of samples
+N = int(input('Enter number of samples : '))  # number of samples
 qc = 0.1  # process noise magnitude
 
 z_noise = 1  # measurement noise magnitude
@@ -71,9 +70,14 @@ r = np.array([[0.010, 0.0, 0.0, 0.0],
 
 # main program
 def main():
-    show_final = 1
-    show_animation = 1
-    show_ellipse = 1
+    show_final = int(input('Display final result? (No/Yes = 0/1) : '))
+    show_animation = int(
+        input('Show animation of filter working? (No/Yes = 0/1) : '))
+    if show_animation == 1:
+        show_ellipse = int(
+            input('Display covariance ellipses in animation? (No/Yes = 0/1) : '))
+    else:
+        show_ellipse = 0
     x_est = x_0
     p_est = p_0
     x_true_cat = np.array([x_0[0, 0], x_0[1, 0]])

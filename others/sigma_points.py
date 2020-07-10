@@ -1,8 +1,5 @@
 import math
-# import matplotlib.pyplot as plt
 import numpy as np
-from scipy.sparse.linalg import expm
-import scipy.integrate as integrate
 from scipy.linalg import sqrtm
 
 

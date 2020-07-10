@@ -8,11 +8,9 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.sparse.linalg import expm
-import scipy.integrate as integrate
 from scipy.linalg import sqrtm
 import imageio as im
 import os
-from pygifsicle import optimize
 
 # initalize global variables
 dt = 0.1  # seconds
@@ -94,7 +92,7 @@ def main():
         x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
         z_cat = np.vstack((z_cat, np.transpose(z[0:2])))
         x_est_cat = np.vstack((x_est_cat, np.transpose(x_est[0:2])))
-    im.mimsave(save_path, images, duration = 0.01)
+    im.mimsave(save_path, images, duration=0.01)
     # optimize(save_path)
     print('KF Over')
 
@@ -177,12 +175,13 @@ def postpross(i, x_true, x_true_cat, x_est, p_est, x_est_cat, z_cat, z, show_ani
             plot_ellipse(x_est[0:2], p_est)
     if show_final_flag == 1:
         plot_final(x_true_cat, x_est_cat, z_cat)
-    fname = 'kf_ca_'+ str(i) + '.png'
+    fname = 'kf_ca_' + str(i) + '.png'
     plt.savefig(fname, dpi=None, facecolor='w', edgecolor='w',
-        orientation='portrait', papertype=None, format=None,
-        transparent=False, bbox_inches=None, pad_inches=0.1)
+                orientation='portrait', papertype=None, format=None,
+                transparent=False, bbox_inches=None, pad_inches=0.1)
     # fname = 'kf_ca_'+ str(i) + '.png'
     images.append(im.imread(fname))
     os.remove(fname)
+
 
 main()

@@ -1,4 +1,4 @@
-lat,long,a_x,a_y,a_z,wXsens,wYsens,wZsens,lin_v_x,lin_v_y,n_FL,n_FR,n_RL,n_RR
+lat,long,a_x (m/s^2),a_y (m/s^2),a_z (m/s^2),wXsens(rad/s),wYsens(rad/s),wZsens(rad/s),lin_v_x(m/s),lin_v_y(m/s),n_FL(RPM),n_FR(RPM),n_RL(RPM),n_RR(RPM)
 0,0,0.159999996,0.179999992,9.88999939,-0.002,0.00E+00,0.002,0,0,0,0,0,0
 47.396,8.6481,0.159999996,0.179999992,9.869999886,0,-0.001,0.002,0,0,0,0,0,0
 47.396,8.6481,0.140000001,0.179999992,9.859999657,0,0,0,0,0,0,0,0,0

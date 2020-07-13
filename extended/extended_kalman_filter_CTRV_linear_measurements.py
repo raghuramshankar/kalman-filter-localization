@@ -14,8 +14,8 @@ dt = 0.1                                            # seconds
 N = int(input('Enter number of samples : '))  # number of samples
 
 
-z_noise = np.array([[1.0, 0.0, 0.0, 0.0],
-                    [0.0, 1.0, 0.0, 0.0],
+z_noise = np.array([[0.1, 0.0, 0.0, 0.0],
+                    [0.0, 0.1, 0.0, 0.0],
                     [0.0, 0.0, 1.0, 0.0],
                     [0.0, 0.0, 0.0, 1.0]])           # measurement noise
 
@@ -29,19 +29,19 @@ x_0 = np.array([[0.0],                                  # x position    [m]
 
 
 # prior covariance
-p_0 = np.array([[1.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0, 0.0, 0.0],
+p_0 = np.array([[0.1, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.1, 0.0, 0.0, 0.0],
                 [0.0, 0.0, 1.0, 0.0, 0.0],
                 [0.0, 0.0, 0.0, 1.0, 0.0],
                 [0.0, 0.0, 0.0, 0.0, 1.0]])
 
 
 # q matrix - process noise
-q = np.array([[1.0, 0.0,    0.0,               0.0, 0.0],
-              [0.0, 1.0,    0.0,               0.0, 0.0],
+q = np.array([[0.00001, 0.0,    0.0,               0.0, 0.0],
+              [0.0, 0.00001,    0.0,               0.0, 0.0],
               [0.0, 0.0,    np.deg2rad(1.0),   0.0, 0.0],
               [0.0, 0.0,    0.0,               1.0, 0.0],
-              [0.0, 0.0,    0.0,                0.0, np.deg2rad(1.0)]])*0
+              [0.0, 0.0,    0.0,                0.0, np.deg2rad(1.0)]])
 
 
 # h matrix - measurement model
@@ -54,8 +54,8 @@ h = np.array([[1.0, 0.0, 0.0, 0.0, 0.0],
 # r matrix - measurement noise covariance
 r = np.array([[0.015, 0.0, 0.0, 0.0],
               [0.0, 0.010, 0.0, 0.0],
-              [0.0, 0.0, 0.010, 0.0],
-              [0.0, 0.0, 0.0, 0.010]])*20000000
+              [0.0, 0.0, 0.1, 0.0],
+              [0.0, 0.0, 0.0, 0.01]])
 
 
 # main program
@@ -82,7 +82,7 @@ def main():
             show_final_flag = 1
         else:
             show_final_flag = 0
-        postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z,
+        postpross(i, x_true, x_true_cat, x_est, p_est, x_est_cat, z,
                   z_cat, show_animation, show_ellipse, show_final_flag)
         x_est, p_est = extended_kalman_filter(x_est, p_est, z)
         x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
@@ -148,9 +148,13 @@ def linear_update(x_pred, p_pred, z):
 
 
 # postprocessing
-def plot_animation(x_true, x_est, z):
-    plt.plot(x_true[0], x_true[1], '.r')
-    plt.plot(x_est[0], x_est[1], '.b')
+def plot_animation(i, x_true_cat, x_est_cat, z):
+    if i == 0:
+        plt.plot(x_true_cat[0], x_true_cat[1], '.r')
+        plt.plot(x_est_cat[0], x_est_cat[1], '.b')
+    else:
+        plt.plot(x_true_cat[0:, 0], x_true_cat[0:, 1], 'r')
+        plt.plot(x_est_cat[0:, 0], x_est_cat[0:, 1], 'b')
     plt.plot(z[0], z[1], '+g')
     plt.grid(True)
     plt.pause(0.001)
@@ -186,9 +190,9 @@ def plot_final(x_true_cat, x_est_cat, z_cat):
     plt.show()
 
 
-def postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z, z_cat, show_animation, show_ellipse, show_final_flag):
+def postpross(i, x_true, x_true_cat, x_est, p_est, x_est_cat, z, z_cat, show_animation, show_ellipse, show_final_flag):
     if show_animation == 1:
-        plot_animation(x_true, x_est, z)
+        plot_animation(i, x_true_cat, x_est_cat, z)
         if show_ellipse == 1:
             plot_ellipse(x_est[0:2], p_est)
     if show_final_flag == 1:

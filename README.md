@@ -10,7 +10,7 @@
 to be updated
 
 ## Cubature Kalman Filter:
-to be updated
+![ckf-ctrv-linear.gif](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/jupyter/ckf_ctrv_linear.gif)
 
 ## References:
 - ![AMZ Driverless FSD Resources](https://github.com/AMZ-Driverless/fsd-resources)

@@ -7,7 +7,7 @@
 ![Open Notebook](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/jupyter/KF-CA-Linear.ipynb)
 
 ## Extended Kalman Filter:
-to be updated
+![ekf-ctrv-linear.gif](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/jupyter/ekf_ctrv_linear.gif)
 
 ## Cubature Kalman Filter:
 ![ckf-ctrv-linear.gif](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/jupyter/ckf_ctrv_linear.gif)

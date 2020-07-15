@@ -28,4 +28,4 @@
  - Star this repo if you found it useful :wink:
  
  ## License
- MIT License
+ ![MIT License](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/LICENSE)

@@ -15,3 +15,17 @@
 ## References:
 - ![AMZ Driverless FSD Resources](https://github.com/AMZ-Driverless/fsd-resources)
 - ![PythonRobotics](https://github.com/AtsushiSakai/PythonRobotics)
+
+## Requirements
+ - Python 3.6 or newer
+ - Numpy, Scipy, Matplotlib, Sympy, Pandas for Python
+ 
+## Usage
+ - Clone this repository.
+ > git clone https://github.com/raghuramshankar/kalman-filter-localization.git
+ > Run ![install.bat](https://github.com/raghuramshankar/sensor-fusion-nonlinear-filtering/blob/master/install.bat) to install required python libraries
+ - Each MATLAB script file is a function which can be called with your main code
+ - Star this repo if you found it useful :wink:
+ 
+ ## License
+ MIT License

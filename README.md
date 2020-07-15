@@ -19,7 +19,7 @@
 ## Requirements
  - Python 3.6 or newer
  - Numpy, Scipy, Matplotlib, Sympy, Pandas for Python
- - MATLAB r2019b or later
+ - MATLAB r2019b or newer
  - ROS Toolbox for MATLAB
  - Any OS that supports MATLAB and Python
  

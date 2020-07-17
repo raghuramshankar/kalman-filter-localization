@@ -9,11 +9,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.sparse.linalg import expm
 from scipy.linalg import sqrtm
+import pandas as pd
 
 # initalize global variables
+amz = pd.read_csv('AMZ_data_resample_gps.csv')
 dt = 0.01  # seconds
-N = int(input('Enter number of samples : '))  # number of samples
+N = len(amz.lat)  # number of samples
 qc = 0.1  # process noise magnitude
+
 
 z_noise = 1  # measurement noise magnitude
 
@@ -80,19 +83,19 @@ def main():
         show_ellipse = 0
     x_est = x_0
     p_est = p_0
-    x_true_cat = np.array([x_0[0, 0], x_0[1, 0]])
+    # x_true_cat = np.array([x_0[0, 0], x_0[1, 0]])
     x_est_cat = np.array([x_0[0, 0], x_0[1, 0]])
     z_cat = np.array([x_0[0, 0], x_0[1, 0]])
     for i in range(N):
-        z, x_true = gen_measurement(i)
+        z = gen_measurement(i)
         if i == (N - 1) and show_final == 1:
             show_final_flag = 1
         else:
             show_final_flag = 0
-        postpross(x_true, x_true_cat, x_est, p_est,
+        postpross(x_est, p_est,
                   x_est_cat, z_cat, z, show_animation, show_ellipse, show_final_flag)
         x_est, p_est = kalman_filter(x_est, p_est, z)
-        x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
+        # x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
         z_cat = np.vstack((z_cat, np.transpose(z[0:2])))
         x_est_cat = np.vstack((x_est_cat, np.transpose(x_est[0:2])))
     print('KF Over')
@@ -100,9 +103,11 @@ def main():
 
 # generate ground truth position x_true and noisy position z
 def gen_measurement(i):
-    x_true = np.array([[i], [i], [0.0], [0.0]])
-    z = x_true + z_noise * np.random.randn(4, 1)
-    return z, x_true
+    # x_true = np.array([[i], [i], [0.0], [0.0]])
+    z1 = amz.lat[i]
+    z2 = amz.long[i]
+    z = np.array([z1, z2])
+    return z
 
 
 # linear kalman filter prediction step
@@ -147,10 +152,10 @@ def plot_ellipse(x_est, p_est):
     plt.pause(0.00001)
 
 
-def plot_final(x_true_cat, x_est_cat, z_cat):
+def plot_final(x_est_cat, z_cat):
     fig = plt.figure()
     f = fig.add_subplot(111)
-    f.plot(x_true_cat[0:, 0], x_true_cat[0:, 1], 'r', label='True Position')
+    # f.plot(x_true_cat[0:, 0], x_true_cat[0:, 1], 'r', label='True Position')
     f.plot(x_est_cat[0:, 0], x_est_cat[0:, 1], 'b', label='Estimated Position')
     f.plot(z_cat[0:, 0], z_cat[0:, 1], '+g', label='Noisy Measurements')
     f.set_xlabel('x [m]')
@@ -161,21 +166,21 @@ def plot_final(x_true_cat, x_est_cat, z_cat):
     plt.show()
 
 
-def plot_animation(x_true, x_est, z):
-    plt.plot(x_true[0], x_true[1], '.r')
+def plot_animation(x_est, z):
+    # plt.plot(x_true[0], x_true[1], '.r')
     plt.plot(x_est[0], x_est[1], '.b')
     plt.plot(z[0], z[1], '+g')
     plt.grid(True)
     plt.pause(0.001)
 
 
-def postpross(x_true, x_true_cat, x_est, p_est, x_est_cat, z_cat, z, show_animation, show_ellipse, show_final_flag):
+def postpross(x_est, p_est, x_est_cat, z_cat, z, show_animation, show_ellipse, show_final_flag):
     if show_animation == 1:
-        plot_animation(x_true, x_est, z)
+        plot_animation(x_est, z)
         if show_ellipse == 1:
             plot_ellipse(x_est[0:2], p_est)
     if show_final_flag == 1:
-        plot_final(x_true_cat, x_est_cat, z_cat)
+        plot_final(x_est_cat, z_cat)
 
 
 main()

@@ -8,12 +8,12 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.linalg import sqrtm
+import pandas as pd
 
 # initalize global variables
+amz = pd.read_csv('AMZ_data_resample_gps.csv')
 dt = 0.1                                            # seconds
-N = int(input('Enter number of samples : '))  # number of samples
-# u_noise = np.array([[0.1, 0.0],
-#                     [0.0, np.deg2rad(10)]])         # input noise
+N = len(amz.lat)  # number of samples
 
 
 z_noise = np.array([[0.1, 0.0, 0.0, 0.0],
@@ -23,8 +23,8 @@ z_noise = np.array([[0.1, 0.0, 0.0, 0.0],
 
 
 # prior mean
-x_0 = np.array([[0.0],                                  # x position    [m]
-                [0.0],                                  # y position    [m]
+x_0 = np.array([[47.396],                                  # x position    [m]
+                [8.6481],                                  # y position    [m]
                 [0.0],                                  # yaw           [rad]
                 [1.0],                                 # velocity      [m/s]
                 [0.1]])                                 # yaw rate      [rad/s]
@@ -70,22 +70,22 @@ def main():
         show_ellipse = 0
     x_est = x_0
     p_est = p_0
-    x_true = x_0
-    p_true = p_0
-    x_true_cat = np.array([x_0[0, 0], x_0[1, 0]])
+    # x_true = x_0
+    # p_true = p_0
+    # x_true_cat = np.array([x_0[0, 0], x_0[1, 0]])
     x_est_cat = np.array([x_0[0, 0], x_0[1, 0]])
     z_cat = np.array([x_0[0, 0], x_0[1, 0]])
     for i in range(N):
-        x_true, p_true = extended_prediction(x_true, p_true)
-        z, gz = gen_measurement(x_true)
+        # x_true, p_true = extended_prediction(x_true, p_true)
+        z = gen_measurement(i)
         if i == (N - 1) and show_final == 1:
             show_final_flag = 1
         else:
             show_final_flag = 0
-        postpross(i, x_true, x_true_cat, x_est, p_est, x_est_cat, z,
+        postpross(x_est, p_est, x_est_cat, z,
                   z_cat, show_animation, show_ellipse, show_final_flag)
         x_est, p_est = cubature_kalman_filter(x_est, p_est, z)
-        x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
+        # x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
         z_cat = np.vstack((z_cat, np.transpose(z[0:2])))
         x_est_cat = np.vstack((x_est_cat, np.transpose(x_est[0:2])))
     print('CKF Over')
@@ -206,21 +206,20 @@ def linear_update(x_pred, p_pred, z):
 
 
 # generate ground truth measurement vector gz, noisy measurement vector z
-def gen_measurement(x_true):
+def gen_measurement(i):
     # x position [m], y position [m]
-    gz = hx @ x_true
-    z = gz + z_noise @ np.random.randn(4, 1)
-    return z.astype(float), gz.astype(float)
+    z1 = amz.lat[i]
+    z2 = amz.long[i]
+    z3 = amz.lin_v_x[i]
+    z4 = amz.wZsens[i]
+    z = np.array([[z1], [z2], [z3], [z4]])
+    return z.astype(float)
 
 
 # postprocessing
-def plot_animation(i, x_true_cat, x_est_cat, z):
-    if i == 0:
-        plt.plot(x_true_cat[0], x_true_cat[1], '.r')
-        plt.plot(x_est_cat[0], x_est_cat[1], '.b')
-    else:
-        plt.plot(x_true_cat[0:, 0], x_true_cat[0:, 1], 'r')
-        plt.plot(x_est_cat[0:, 0], x_est_cat[0:, 1], 'b')
+def plot_animation(x_est, z):
+    # plt.plot(x_true[0], x_true[1], '.r')
+    plt.plot(x_est[0], x_est[1], '.b')
     plt.plot(z[0], z[1], '+g')
     plt.grid(True)
     plt.pause(0.001)
@@ -242,10 +241,10 @@ def plot_ellipse(x_est, p_est):
     plt.pause(0.00001)
 
 
-def plot_final(x_true_cat, x_est_cat, z_cat):
+def plot_final(x_est_cat, z_cat):
     fig = plt.figure()
     f = fig.add_subplot(111)
-    f.plot(x_true_cat[0:, 0], x_true_cat[0:, 1], 'r', label='True Position')
+    # f.plot(x_true_cat[0:, 0], x_true_cat[0:, 1], 'r', label='True Position')
     f.plot(x_est_cat[0:, 0], x_est_cat[0:, 1], 'b', label='Estimated Position')
     f.plot(z_cat[0:, 0], z_cat[0:, 1], '+g', label='Noisy Measurements')
     f.set_xlabel('x [m]')
@@ -256,13 +255,13 @@ def plot_final(x_true_cat, x_est_cat, z_cat):
     plt.show()
 
 
-def postpross(i, x_true, x_true_cat, x_est, p_est, x_est_cat, z, z_cat, show_animation, show_ellipse, show_final_flag):
+def postpross(x_est, p_est, x_est_cat, z, z_cat, show_animation, show_ellipse, show_final_flag):
     if show_animation == 1:
-        plot_animation(i, x_true_cat, x_est_cat, z)
+        plot_animation(x_est, z)
         if show_ellipse == 1:
             plot_ellipse(x_est[0:2], p_est)
     if show_final_flag == 1:
-        plot_final(x_true_cat, x_est_cat, z_cat)
+        plot_final(x_est_cat, z_cat)
 
 
 main()

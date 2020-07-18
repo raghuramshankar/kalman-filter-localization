@@ -2,7 +2,7 @@
 
 # state matrix:             2D x-y position, heading, velocity and yaw rate (turn rate) (5 x 1)
 # input matrix:             --None--
-# measurement matrix:       2D x-y position from GPS, velcity and yaw rate (4 x 1)
+# measurement matrix:       2D x-y position from GPS, velocity and yaw rate (4 x 1)
 
 import math
 import matplotlib.pyplot as plt

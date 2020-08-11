@@ -2,7 +2,7 @@
 
 # state matrix:                     2D x-y position, velocity, yaw and yaw rate (5 x 1)
 # input matrix:                     --None--
-# measurement matrix:               2D noisy x-y position measured directly, noisy velocity and rate (4 x 1)
+# measurement matrix:               2D noisy x-y position measured directly and yaw rate (3 x 1)
 
 import math
 import matplotlib.pyplot as plt
@@ -14,7 +14,7 @@ import pandas as pd
 amz = pd.read_csv('AMZ_data_resample_gps.csv')
 dt = 0.1                                            # seconds
 N = len(amz.lat)  # number of samples
-
+# N = 100
 
 z_noise = np.array([[0.1, 0.0, 0.0, 0.0],
                     [0.0, 0.1, 0.0, 0.0],
@@ -25,49 +25,50 @@ z_noise = np.array([[0.1, 0.0, 0.0, 0.0],
 # prior mean
 x_0 = np.array([[47.396],                                  # x position    [m]
                 [8.6481],                                  # y position    [m]
-                [0.0],                                  # yaw           [rad]
-                [1.0],                                 # velocity      [m/s]
-                [0.1]])                                 # yaw rate      [rad/s]
+                [0.0000001],                                  # yaw           [rad]
+                [0.0000001],                                 # velocity      [m/s]
+                [0.0000001]])                                 # yaw rate      [rad/s]
 
 
 # prior covariance
-p_0 = np.array([[0.1, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.1, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 1.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 1.0]])
+p_0 = np.array([[0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0]])
 
 
 # q matrix - process noise
-q = np.array([[0.00001, 0.0,    0.0,               0.0, 0.0],
-              [0.0, 0.00001,    0.0,               0.0, 0.0],
-              [0.0, 0.0,    np.deg2rad(0.0000001),   0.0, 0.0],
-              [0.0, 0.0,    0.0,               0.0000001, 0.0],
-              [0.0, 0.0,    0.0,                0.0, np.deg2rad(0.00001)]])
+q = np.array([[0.01, 0.0,    0.0,               0.0, 0.0],
+              [0.0, 0.01,    0.0,               0.0, 0.0],
+              [0.0, 0.0,    np.deg2rad(0.1),   0.0, 0.0],
+              [0.0, 0.0,    0.0,               0.1, 0.0],
+              [0.0, 0.0,    0.0,                0.0, np.deg2rad(0.01)]])
 
 # h matrix - measurement matrix
 hx = np.array([[1.0, 0.0, 0.0, 0.0, 0.0],
                [0.0, 1.0, 0.0, 0.0, 0.0],
-               [0.0, 0.0, 0.0, 1.0, 0.0],
                [0.0, 0.0, 0.0, 0.0, 1.0]])
 
 # r matrix - measurement noise covariance
-r = np.array([[0.015, 0.0, 0.0, 0.0],
-              [0.0, 0.010, 0.0, 0.0],
-              [0.0, 0.0, 0.1, 0.0],
-              [0.0, 0.0, 0.0, 0.01]])**2
+r = np.array([[0.015, 0.0, 0.0],
+              [0.0, 0.010, 0.0],
+              [0.0, 0.0, 0.01]])**2
 
 
 # main program
 def main():
-    show_final = int(input('Display final result? (No/Yes = 0/1) : '))
-    show_animation = int(
-        input('Show animation of filter working? (No/Yes = 0/1) : '))
-    if show_animation == 1:
-        show_ellipse = int(
-            input('Display covariance ellipses in animation? (No/Yes = 0/1) : '))
-    else:
-        show_ellipse = 0
+    # show_final = int(input('Display final result? (No/Yes = 0/1) : '))
+    # show_animation = int(
+    # input('Show animation of filter working? (No/Yes = 0/1) : '))
+    # if show_animation == 1:
+    # show_ellipse = int(
+    # input('Display covariance ellipses in animation? (No/Yes = 0/1) : '))
+    # else:
+    # show_ellipse = 0
+    show_final = 1
+    show_animation = 0
+    show_ellipse = 0
     x_est = x_0
     p_est = p_0
     # x_true = x_0
@@ -82,7 +83,7 @@ def main():
             show_final_flag = 1
         else:
             show_final_flag = 0
-        postpross(x_est, p_est, x_est_cat, z,
+        postpross(i, x_est, p_est, x_est_cat, z,
                   z_cat, show_animation, show_ellipse, show_final_flag)
         x_est, p_est = cubature_kalman_filter(x_est, p_est, z)
         # x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
@@ -113,7 +114,7 @@ def f(x):
 # CTRV measurement model h matrix
 def h(x):
     x = hx @ x
-    x.reshape((4, 1))
+    x.reshape((3, 1))
     return x
 
 
@@ -210,17 +211,19 @@ def gen_measurement(i):
     # x position [m], y position [m]
     z1 = amz.lat[i]
     z2 = amz.long[i]
-    z3 = amz.lin_v_x[i]
-    z4 = amz.wZsens[i]
-    z = np.array([[z1], [z2], [z3], [z4]])
+    z5 = amz.wZsens[i]
+    z = np.array([[z1], [z2], [z5]])
     return z.astype(float)
 
 
 # postprocessing
-def plot_animation(x_est, z):
-    # plt.plot(x_true[0], x_true[1], '.r')
-    plt.plot(x_est[0], x_est[1], '.b')
-    plt.plot(z[0], z[1], '+g')
+def plot_animation(i, x_est_cat, z):
+    if i == 0:
+        # plt.plot(x_true_cat[0], x_true_cat[1], '.r')
+        plt.plot(x_est_cat[0], x_est_cat[1], '.b')
+    else:
+        # plt.plot(x_true_cat[0:, 0], x_true_cat[0:, 1], 'r')
+        plt.plot(x_est_cat[0:, 0], x_est_cat[0:, 1], 'b')
     plt.grid(True)
     plt.pause(0.001)
 
@@ -250,14 +253,14 @@ def plot_final(x_est_cat, z_cat):
     f.set_xlabel('x [m]')
     f.set_ylabel('y [m]')
     f.set_title('Cubature Kalman Filter - CTRV Model')
-    f.legend(loc='upper left', shadow=True, fontsize='large')
+    # f.legend(loc='upper left', shadow=True, fontsize='large')
     plt.grid(True)
     plt.show()
 
 
-def postpross(x_est, p_est, x_est_cat, z, z_cat, show_animation, show_ellipse, show_final_flag):
+def postpross(i, x_est, p_est, x_est_cat, z, z_cat, show_animation, show_ellipse, show_final_flag):
     if show_animation == 1:
-        plot_animation(x_est, z)
+        plot_animation(i, x_est_cat, z)
         if show_ellipse == 1:
             plot_ellipse(x_est[0:2], p_est)
     if show_final_flag == 1:

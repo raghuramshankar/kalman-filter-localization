@@ -23,8 +23,8 @@ z_noise = np.array([[0.1, 0.0, 0.0, 0.0],
 
 
 # prior mean
-x_0 = np.array([[0.0],                                  # x position    [m]
-                [0.0],                                  # y position    [m]
+x_0 = np.array([[47.396],                                  # x position    [m]
+                [8.6481],                                  # y position    [m]
                 [0.0],                                  # yaw           [rad]
                 [1.0],                                 # velocity      [m/s]
                 [0.1]])                                 # yaw rate      [rad/s]
@@ -39,11 +39,11 @@ p_0 = np.array([[0.1, 0.0, 0.0, 0.0, 0.0],
 
 
 # q matrix - process noise
-q = np.array([[0.00001, 0.0,    0.0,               0.0, 0.0],
-              [0.0, 0.00001,    0.0,               0.0, 0.0],
-              [0.0, 0.0,    np.deg2rad(0.000001),   0.0, 0.0],
-              [0.0, 0.0,    0.0,               1.0, 0.0],
-              [0.0, 0.0,    0.0,                0.0, np.deg2rad(1.0)]])
+q = np.array([[0.1, 0.0,    0.0,               0.0, 0.0],
+              [0.0, 0.1,    0.0,               0.0, 0.0],
+              [0.0, 0.0,    np.deg2rad(1.0),   0.0, 0.0],
+              [0.0, 0.0,    0.0,               10, 0.0],
+              [0.0, 0.0,    0.0,                0.0, np.deg2rad(0.001)]])
 
 
 # h matrix - measurement model
@@ -62,14 +62,17 @@ r = np.array([[0.015, 0.0, 0.0, 0.0],
 
 # main program
 def main():
-    show_final = int(input('Display final result? (No/Yes = 0/1) : '))
-    show_animation = int(
-        input('Show animation of filter working? (No/Yes = 0/1) : '))
-    if show_animation == 1:
-        show_ellipse = int(
-            input('Display covariance ellipses in animation? (No/Yes = 0/1) : '))
-    else:
-        show_ellipse = 0
+    # show_final = int(input('Display final result? (No/Yes = 0/1) : '))
+    # show_animation = int(
+        # input('Show animation of filter working? (No/Yes = 0/1) : '))
+    # if show_animation == 1:
+        # show_ellipse = int(
+            # input('Display covariance ellipses in animation? (No/Yes = 0/1) : '))
+    # else:
+        # show_ellipse = 0
+    show_final = 1
+    show_animation = 0
+    show_ellipse = 0
     x_est = x_0
     p_est = p_0
     # x_true = x_0

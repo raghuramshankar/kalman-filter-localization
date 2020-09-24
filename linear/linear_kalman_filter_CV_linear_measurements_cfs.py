@@ -16,7 +16,7 @@ cfs = pd.read_csv('cfs_data_fsn17.csv')
 dt = 0.01  # seconds
 N = int(len(cfs.XX))-1  # number of samples
 # N = 30000
-qc = 0.0000001  # process noise magnitude
+qc = 1e-1  # process noise magnitude
 
 z_noise = 1  # measurement noise magnitude
 

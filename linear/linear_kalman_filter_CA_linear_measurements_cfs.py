@@ -108,7 +108,6 @@ def gen_measurement(i):
     ax = float(cfs['ax'][(i)+1])
     ay = float(cfs['ay'][(i)+1])
     z = np.array([[x], [y], [ax], [ay]])
-    # print(z)
     return z
 
 

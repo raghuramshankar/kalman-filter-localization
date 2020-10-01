@@ -21,8 +21,8 @@ save_path = "ckf_ctrv_linear.gif"
 
 z_noise = np.array([[0.1, 0.0, 0.0, 0.0],
                     [0.0, 0.1, 0.0, 0.0],
-                    [0.0, 0.0, 0.1, 0.0],
-                    [0.0, 0.0, 0.0, 0.1]])           # measurement noise
+                    [0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0]])           # measurement noise
 
 
 # prior mean
@@ -34,19 +34,19 @@ x_0 = np.array([[0.0],                                  # x position    [m]
 
 
 # prior covariance
-p_0 = np.array([[0.1, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.1, 0.0, 0.0, 0.0],
+p_0 = np.array([[1e-3, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 1e-3, 0.0, 0.0, 0.0],
                 [0.0, 0.0, 1.0, 0.0, 0.0],
                 [0.0, 0.0, 0.0, 1.0, 0.0],
                 [0.0, 0.0, 0.0, 0.0, 1.0]])
 
 
 # q matrix - process noise
-q = np.array([[0.00001, 0.0,    0.0,               0.0, 0.0],
-              [0.0, 0.00001,    0.0,               0.0, 0.0],
-              [0.0, 0.0,    np.deg2rad(1.0),   0.0, 0.0],
-              [0.0, 0.0,    0.0,               1.0, 0.0],
-              [0.0, 0.0,    0.0,                0.0, np.deg2rad(1.0)]])
+q = np.array([[1e-11, 0.0,    0.0,               0.0, 0.0],
+              [0.0, 1e-11,    0.0,               0.0, 0.0],
+              [0.0, 0.0,    np.deg2rad(1e-4),   0.0, 0.0],
+              [0.0, 0.0,    0.0,               1e-4, 0.0],
+              [0.0, 0.0,    0.0,                0.0, np.deg2rad(1e-4)]])
 
 # h matrix - measurement matrix
 hx = np.array([[1.0, 0.0, 0.0, 0.0, 0.0],
@@ -69,13 +69,12 @@ def main():
     x_est = x_0
     p_est = p_0
     x_true = x_0
-    p_true = p_0
     x_true_cat = np.array([x_0[0, 0], x_0[1, 0]])
     x_est_cat = np.array([x_0[0, 0], x_0[1, 0]])
     z_cat = np.array([x_0[0, 0], x_0[1, 0]])
     for i in range(N):
-        x_true, p_true = extended_prediction(x_true, p_true)
-        z, gz = gen_measurement(x_true)
+        x_true = f(x_true)
+        z = gen_measurement(x_true)
         if i == (N - 1) and show_final == 1:
             show_final_flag = 1
         else:
@@ -113,35 +112,6 @@ def h(x):
     x = hx @ x
     x.reshape((4, 1))
     return x
-
-
-# extended kalman filter nonlinear prediction step for ground truth generation
-def extended_prediction(x, p):
-
-    # f(x)
-    x[0] = x[0] + (x[3]/x[4]) * (np.sin(x[4] * dt + x[2]) - np.sin(x[2]))
-    x[1] = x[1] + (x[3]/x[4]) * (- np.cos(x[4] * dt + x[2]) + np.cos(x[2]))
-    x[2] = x[2] + x[4] * dt
-    x[3] = x[3]
-    x[4] = x[4]
-
-    a13 = float((x[3]/x[4]) * (np.cos(x[4]*dt+x[2]) - np.cos(x[2])))
-    a14 = float((1.0/x[4]) * (np.sin(x[4]*dt+x[2]) - np.sin(x[2])))
-    a15 = float((dt*x[3]/x[4])*np.cos(x[4]*dt+x[2]) -
-                (x[3]/x[4]**2)*(np.sin(x[4]*dt+x[2]) - np.sin(x[2])))
-    a23 = float((x[3]/x[4]) * (np.sin(x[4]*dt+x[2]) - np.sin(x[2])))
-    a24 = float((1.0/x[4]) * (-np.cos(x[4]*dt+x[2]) + np.cos(x[2])))
-    a25 = float((dt*x[3]/x[4])*np.sin(x[4]*dt+x[2]) -
-                (x[3]/x[4]**2)*(-np.cos(x[4]*dt+x[2]) + np.cos(x[2])))
-
-    jF = np.matrix([[1.0, 0.0, a13, a14, a15],
-                    [0.0, 1.0, a23, a24, a25],
-                    [0.0, 0.0, 1.0, 0.0, dt],
-                    [0.0, 0.0, 0.0, 1.0, 0.0],
-                    [0.0, 0.0, 0.0, 0.0, 1.0]])
-    x_pred = x
-    p_pred = jF @ p @ np.transpose(jF) + q
-    return x_pred.astype(float), p_pred.astype(float)
 
 
 # generate sigma points
@@ -210,7 +180,7 @@ def gen_measurement(x_true):
     # x position [m], y position [m]
     gz = hx @ x_true
     z = gz + z_noise @ np.random.randn(4, 1)
-    return z.astype(float), gz.astype(float)
+    return z.astype(float)
 
 
 # postprocessing

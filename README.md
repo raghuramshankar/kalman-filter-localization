@@ -1,21 +1,24 @@
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/raghuramshankar/kalman-filter-localization.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/raghuramshankar/kalman-filter-localization/alerts/)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/raghuramshankar/kalman-filter-localization.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/raghuramshankar/kalman-filter-localization/context:python)
+
 ## Linear Kalman Filter with Constant Acceleration Motion Model:
 
-![kf-ca-linear.gif](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/jupyter/kf_ca_linear.gif)
-
-![Open Notebook](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/jupyter/KF-CA-Linear.ipynb)
+![kf-ca-linear.gif](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/gifs/kf_ca_linear.gif)
 
 ## Extended Kalman Filter:
 
-![ekf-ctrv-linear.gif](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/jupyter/ekf_ctrv_linear.gif)
+![ekf-ctrv-linear.gif](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/gifs/ekf_ctrv_linear.gif)
 
 ## Cubature Kalman Filter:
 
-![ckf-ctrv-linear.gif](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/jupyter/ckf_ctrv_linear.gif)
+![ckf-ctrv-linear.gif](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/gifs/ckf_ctrv_linear.gif)
 
 ## References:
 
 - ![AMZ Driverless FSD Resources](https://github.com/AMZ-Driverless/fsd-resources)
 - ![PythonRobotics](https://github.com/AtsushiSakai/PythonRobotics)
+- ![Kalman by Balzer82](https://github.com/balzer82/Kalman)
+- ![Comparison and Evaluation of Advanced Motion Models for Vehicle Tracking](http://fusion.isif.org/proceedings/fusion08CD/papers/1569107835.pdf)
 
 ## Requirements
 

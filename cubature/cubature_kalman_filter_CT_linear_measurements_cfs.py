@@ -8,13 +8,12 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.linalg import sqrtm
-import pandas as pd
 
 # initalize global variables
 cfs = pd.read_csv('cfs_data_fsn17.csv')
 dt = 0.01                                               # seconds
 # N = int(len(cfs['XX']))-1                               # number of samples
-N = 6000
+N = 5000
 
 z_noise = np.array([[1.0, 0.0, 0.0],
                     [0.0, 1.0, 0.0],
@@ -91,9 +90,6 @@ def main():
         z_cat = np.vstack((z_cat, np.transpose(z[0:3])))
         vel_cat = np.vstack((vel_cat, vel))
         x_est_cat = np.vstack((x_est_cat, np.transpose(x_est[0:5])))
-    df_cols = x_est_cat
-    df = pd.DataFrame(df_cols)
-    df.to_csv('velocities.csv', index=False)
     print('CKF Over')
 
 
@@ -269,7 +265,7 @@ def postpross(i, x_est, p_est, x_est_cat, z, z_cat, vel_cat, show_animation, sho
         if show_ellipse == 1:
             plot_ellipse(x_est[0:2], p_est)
     if show_final_flag == 1:
-        plot_final_2(x_est_cat, z_cat, vel_cat, i)
+        plot_final_3(x_est_cat, z_cat, vel_cat, i)
 
 
 main()

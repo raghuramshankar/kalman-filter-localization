@@ -88,7 +88,6 @@ def main():
         z_cat = np.vstack((z_cat, np.transpose(z[0:2])))
         x_est_cat = np.vstack((x_est_cat, np.transpose(x_est[0:2])))
     im.mimsave(save_path, images, duration=0.01)
-    # optimize(save_path)
     print('EKF Over')
 
 

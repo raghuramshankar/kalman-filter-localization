@@ -61,7 +61,7 @@ h = np.array([[1.0, 0.0, 0.0, 0.0],
 
 # r matrix - measurement noise covariance
 r = np.array([[0.015, 0.0],
-              [0.0, 0.010]])*20000000000000
+              [0.0, 0.010]])
 
 
 # main program

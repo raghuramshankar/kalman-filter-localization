@@ -2,7 +2,7 @@
 
 # state matrix:                     2D x-y position, yaw, velocity, yaw rate and acceleration (6 x 1)
 # input matrix:                     --None--
-# measurement matrix:               2D noisy x-y position measured directly, yaw rate and acceleration (4 x 1)
+# measurement matrix:               2D noisy x-y position measured directly, yaw rate, acceleration, velocity (5 x 1)
 
 import math
 import matplotlib.pyplot as plt
@@ -14,7 +14,7 @@ import pandas as pd
 cfs = pd.read_csv('cfs_data_fsn17.csv')
 dt = 0.01                                                       # seconds
 # N = int(len(cfs['XX']))-1                                    # number of samples
-N = 2000
+N = 5000
 
 # prior mean
 x_0 = np.array([[0.0],                                  # x position    [m]
@@ -38,21 +38,23 @@ p_0 = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
 q = np.array([[1e-6, 0.0, 0.0, 0.0, 0.0, 0.0],
               [0.0, 1e-6, 0.0, 0.0, 0.0, 0.0],
               [0.0, 0.0, 1e-8, 0.0, 0.0, 0.0],
-              [0.0, 0.0, 0.0, 1e-7, 0.0, 0.0],
+              [0.0, 0.0, 0.0, 1e-8, 0.0, 0.0],
               [0.0, 0.0, 0.0, 0.0, 1e-4, 0.0],
               [0.0, 0.0, 0.0, 0.0, 0.0, 1e-4]])
 
 # h matrix - measurement matrix
 hx = np.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],      # x position    [m]
                [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],      # y position    [m]
+               [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],      # velocity      [m/s]
                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],      # yaw rate      [rad/s]
                [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])     # acceleration  [m/s^2]
 
 # r matrix - measurement noise covariance
-r = np.array([[0.015, 0.0, 0.0, 0.0],
-              [0.0, 0.010, 0.0, 0.0],
-              [0.0, 0.0, 0.01, 0.0],
-              [0.0, 0.0, 0.0, 0.01]])**2
+r = np.array([[0.015, 0.0, 0.0, 0.0, 0.0],
+              [0.0, 0.010, 0.0, 0.0, 0.0],
+              [0.0, 0.0, 0.01, 0.0, 0.0],
+              [0.0, 0.0, 0.0, 0.01, 0.0],
+              [0.0, 0.0, 0.0, 0.0, 0.01]])**2
 
 
 # main program
@@ -75,8 +77,9 @@ def main():
     # x_true_cat = np.array([x_0[0, 0], x_0[1, 0]])
     x_est_cat = np.array(
         [x_0[0, 0], x_0[1, 0], x_0[2, 0], x_0[3, 0], x_0[4, 0], x_0[5, 0]])
-    z_cat = np.array([x_0[0, 0], x_0[1, 0], x_0[4, 0], x_0[5, 0]])
+    z_cat = np.array([x_0[0, 0], x_0[1, 0], x_0[3, 0], x_0[4, 0], x_0[5, 0]])
     vel_cat = np.array([x_0[3, 0]])
+    lat_vel_cat = np.array([x_0[3, 0]])
     for i in range(N):
         # x_true, p_true = extended_prediction(x_true, p_true)
         z, vel = gen_measurement(i)
@@ -85,12 +88,13 @@ def main():
         else:
             show_final_flag = 0
         # x_true_cat = np.vstack((x_true_cat, np.transpose(x_true[0:2])))
-        z_cat = np.vstack((z_cat, np.transpose(z[0:4])))
+        z_cat = np.vstack((z_cat, np.transpose(z[0:5])))
         # vel_cat = np.vstack((vel_cat, vel * np.sin(x_est[2])))
         vel_cat = np.vstack((vel_cat, vel))
+        lat_vel_cat = np.vstack((lat_vel_cat, x_est[3] * np.cos(x_est[2])))
         x_est_cat = np.vstack((x_est_cat, np.transpose(x_est[0:6])))
         postpross(i, x_est, p_est, x_est_cat, z,
-                  z_cat, vel_cat, show_animation, show_ellipse, show_final_flag)
+                  z_cat, vel_cat, lat_vel_cat, show_animation, show_ellipse, show_final_flag)
         x_est, p_est = cubature_kalman_filter(x_est, p_est, z)
     print('CKF Over')
 
@@ -108,7 +112,7 @@ def f(x):
     x[0] = x[0] + (x[3]/x[4]) * (np.sin(x[4] * dt + x[2]) - np.sin(x[2]))
     x[1] = x[1] + (x[3]/x[4]) * (- np.cos(x[4] * dt + x[2]) + np.cos(x[2]))
     x[2] = x[2] + x[4] * dt
-    x[3] = x[3] + np.sin(x[2]) * x[5] * dt
+    x[3] = x[3] + x[5] * dt
     x[4] = x[4]
     x[5] = x[5]
     x.reshape((6, 1))
@@ -118,7 +122,7 @@ def f(x):
 # CTRV measurement model h matrix
 def h(x):
     x = hx @ x
-    x.reshape((4, 1))
+    x.reshape((5, 1))
     return x
 
 
@@ -186,11 +190,12 @@ def gen_measurement(i):
     x = float(cfs['XX'][i+1])
     y = float(cfs['YY'][i+1])
     vel = float(cfs['tv_velocity'][i+1])
+    v = float(cfs['GPSVel'][i+1])
     wZsens = float(cfs['yawRate'][i+1])
-    a_x = float(cfs['ax'][i+1])
+    a_x = float(cfs['ax'][i+1]) - 1.0
     a_y = float(cfs['ay'][i+1])
     acc = np.sqrt(a_x**2 + a_y**2)
-    gz = np.array([[x], [y], [wZsens], [acc]])
+    gz = np.array([[x], [y], [v], [wZsens], [a_x]])
     # z = gz + z_noise @ np.random.randn(4, 1)
     return gz.astype(float), float(vel)
 
@@ -255,7 +260,7 @@ def plot_final_3(x_est_cat, z_cat, vel_cat, i):
     f = fig.add_subplot(111)
     # f.plot(x_true_cat[0:, 0], x_true_cat[0:, 1], 'r', label='True Position')
     # f.plot(est_vel_cat[0:], 'b', label='Estimated Velocity')
-    f.plot(x_est_cat[0:, 3], 'b', label='Estimated Velocity')
+    f.plot(x_est_cat[0:, 3], 'b', label='Estimated Longitudinal Velocity')
     f.plot(vel_cat, '+g', label='Noisy Measurements')
     f.set_xlabel('Sample')
     f.set_ylabel('Velocity [m/s]')
@@ -293,14 +298,29 @@ def plot_final_5(x_est_cat, z_cat, i):
     plt.show()
 
 
-def postpross(i, x_est, p_est, x_est_cat, z, z_cat, vel_cat, show_animation, show_ellipse, show_final_flag):
+def plot_final_6(x_est, z_cat, lat_vel_cat, i):
+    fig = plt.figure()
+    f = fig.add_subplot(111)
+    # f.plot(x_true_cat[0:, 0], x_true_cat[0:, 1], 'r', label='True Position')
+    f.plot(lat_vel_cat[0:], 'b', label='Estimated Lateral Velocity')
+    # f.plot(z_cat[0:, 3], '+g', label='Noisy Measurements')
+    f.set_xlabel('Sample')
+    f.set_ylabel('Velocity [m/s]')
+    f.set_title('Cubature Kalman Filter - CTRA Model')
+    f.legend(loc='upper right', shadow=True, fontsize='large')
+    plt.grid(True)
+    plt.show()
+
+
+def postpross(i, x_est, p_est, x_est_cat, z, z_cat, vel_cat, lat_vel_cat, show_animation, show_ellipse, show_final_flag):
     if show_animation == 1:
         plot_animation(i, x_est_cat, z)
         if show_ellipse == 1:
             plot_ellipse(x_est[0:2], p_est)
     if show_final_flag == 1:
         plot_final_3(x_est_cat, z_cat, vel_cat, i)
-        # plot_final_4(x_est_cat, z_cat, i)
+        # plot_final_5(x_est_cat, z_cat, i)
+        # plot_final_6(x_est, z_cat, lat_vel_cat, i)
         # plot_final(x_est_cat, z_cat)
 
 

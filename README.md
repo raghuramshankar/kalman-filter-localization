@@ -1,6 +1,3 @@
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/raghuramshankar/kalman-filter-localization.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/raghuramshankar/kalman-filter-localization/alerts/)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/raghuramshankar/kalman-filter-localization.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/raghuramshankar/kalman-filter-localization/context:python)
-
 ## Linear Kalman Filter with Constant Acceleration Motion Model:
 
 ![kf-ca-linear.gif](https://github.com/raghuramshankar/kalman-filter-localization/blob/master/gifs/kf_ca_linear.gif)
@@ -15,10 +12,10 @@
 
 ## References:
 
-- ![AMZ Driverless FSD Resources](https://github.com/AMZ-Driverless/fsd-resources)
-- ![PythonRobotics](https://github.com/AtsushiSakai/PythonRobotics)
-- ![Kalman by Balzer82](https://github.com/balzer82/Kalman)
-- ![Comparison and Evaluation of Advanced Motion Models for Vehicle Tracking](http://fusion.isif.org/proceedings/fusion08CD/papers/1569107835.pdf)
+- [AMZ Driverless FSD Resources](https://github.com/AMZ-Driverless/fsd-resources)
+- [PythonRobotics](https://github.com/AtsushiSakai/PythonRobotics)
+- [Kalman by Balzer82](https://github.com/balzer82/Kalman)
+- [Comparison and Evaluation of Advanced Motion Models for Vehicle Tracking](http://fusion.isif.org/proceedings/fusion08CD/papers/1569107835.pdf)
 
 ## Requirements
 
@@ -33,7 +30,7 @@
 - Clone this repository
   > git clone https://github.com/raghuramshankar/kalman-filter-localization.git
 - Make sure you have Python installed
-  > Run ![install.bat](https://github.com/raghuramshankar/sensor-fusion-nonlinear-filtering/blob/master/install.bat) to install required python libraries
+  > Run [install.bat](https://github.com/raghuramshankar/sensor-fusion-nonlinear-filtering/blob/master/install.bat) to install required python libraries
 - Make sure you have MATLAB installed with the ROS Toolbox
 - Each MATLAB script file is a function which can be called with your main code
 - Star this repo if you found it useful :wink:

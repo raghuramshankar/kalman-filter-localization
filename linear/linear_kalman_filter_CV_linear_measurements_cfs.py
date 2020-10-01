@@ -96,8 +96,6 @@ def gen_measurement(i):
     x = float(cfs['XX'][(i)+1])
     y = float(cfs['YY'][(i)+1])
     z = np.array([[x], [y]])
-    # z = np.array([[i], [-i]])
-    # print(z)
     return z
 
 
